@@ -1,0 +1,8 @@
+{
+  "animals": [
+    { "name": "Yogi", "species": "Bear", "weight": 305, "isHibernating": true },
+    { "name": "Blinky", "species": "Bear", "weight": 240.5, "isHibernating": false },
+    { "name": "Bouncy", "species": "Gazelle", "weight": 62, "hornLengths": [31, 32] },
+    { "name": "Tony", "species": "Lion", "weight": 204, "maneImpressiveness": 10 }
+  ]
+}
