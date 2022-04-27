@@ -5,18 +5,18 @@ using System.Collections.Generic;
 using System.Text.Json;
 
 /// <summary>Options to configure a concrete type for polymorphic JSON deserialization.</summary>
-public class JsonPolymorphicConverterConcreteTypeOptions
+public class PolymorphicJsonConverterConcreteTypeOptions
 {
     private readonly IDiscriminatorOptions options;
     private Predicate<JsonElement>? predicate;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="JsonPolymorphicConverterConcreteTypeOptions"/> using simple property
+    /// Initializes a new instance of <see cref="PolymorphicJsonConverterConcreteTypeOptions"/> using simple property
     /// name existence.
     /// </summary>
     /// <param name="type">Type of the concrete class.</param>
     /// <param name="options">Discriminator configuration options.</param>
-    public JsonPolymorphicConverterConcreteTypeOptions(Type type, IDiscriminatorOptions options)
+    public PolymorphicJsonConverterConcreteTypeOptions(Type type, IDiscriminatorOptions options)
     {
         this.Type = type;
         this.options = options;
@@ -34,7 +34,7 @@ public class JsonPolymorphicConverterConcreteTypeOptions
 
     /// <summary>
     /// Initializes the options for conversion. Called by the factory during its
-    /// <see cref="JsonPolymorphicConverterFactory.CreateConverter(Type, JsonSerializerOptions)"/> method.
+    /// <see cref="PolymorphicJsonConverterFactory.CreateConverter(Type, JsonSerializerOptions)"/> method.
     /// </summary>
     /// <param name="propertyNamingPolicy">The current property naming policy.</param>
     public void Initialize(JsonNamingPolicy? propertyNamingPolicy)
@@ -42,7 +42,7 @@ public class JsonPolymorphicConverterConcreteTypeOptions
         this.predicate = this.options.CreatePredicate(propertyNamingPolicy);
     }
 
-    public static JsonPolymorphicConverterConcreteTypeOptions Create<T>(IDiscriminatorOptions options)
+    public static PolymorphicJsonConverterConcreteTypeOptions Create<T>(IDiscriminatorOptions options)
     {
         return new(typeof(T), options);
     }

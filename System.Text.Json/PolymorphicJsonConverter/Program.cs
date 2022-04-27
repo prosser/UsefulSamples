@@ -10,7 +10,7 @@ JsonSerializerOptions jsonSerializerOptions = new()
 };
 
 // you can create a factory with inline code like this
-JsonPolymorphicConverterFactory factory = new()
+PolymorphicJsonConverterFactory factory = new()
 {
     // the base type is Animal
     new(typeof(Animal))
@@ -33,7 +33,7 @@ JsonPolymorphicConverterFactory factory = new()
 //        typeof(Animal),
 //        Assembly.GetExecutingAssembly().GetExportedTypes()
 //            .Where(t => !t.IsAbstract && typeof(Animal).IsAssignableFrom(t))
-//            .Select(t => new JsonPolymorphicConverterConcreteTypeOptions(t, new PropertyHasValueDiscriminator(nameof(Animal.Species), t.Name)))
+//            .Select(t => new PolymorphicJsonConverterConcreteTypeOptions(t, new PropertyHasValueDiscriminator(nameof(Animal.Species), t.Name)))
 //    )
 //};
 

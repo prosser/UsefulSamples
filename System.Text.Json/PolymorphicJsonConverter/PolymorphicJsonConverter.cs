@@ -5,12 +5,12 @@
     using System.Text.Json;
     using System.Text.Json.Serialization;
 
-    internal class JsonPolymorphicConverter<T> : JsonConverter<T>
+    internal class PolymorphicJsonConverter<T> : JsonConverter<T>
         where T : class
     {
-        private readonly JsonPolymorphicConverterAbstractTypeOptions options;
+        private readonly PolymorphicJsonConverterAbstractTypeOptions options;
 
-        public JsonPolymorphicConverter(JsonPolymorphicConverterAbstractTypeOptions options)
+        public PolymorphicJsonConverter(PolymorphicJsonConverterAbstractTypeOptions options)
         {
             this.options = options;
         }
@@ -35,7 +35,7 @@
             }
         }
 
-        private static bool IsMatch(Utf8JsonReader reader, JsonPolymorphicConverterConcreteTypeOptions options)
+        private static bool IsMatch(Utf8JsonReader reader, PolymorphicJsonConverterConcreteTypeOptions options)
         {
             return JsonElement.TryParseValue(ref reader, out JsonElement? element) &&
                 element is not null &&
@@ -45,14 +45,14 @@
         private bool TryGetConcreteType(Utf8JsonReader reader, out Type? concreteType)
         {
             concreteType = null;
-            foreach (JsonPolymorphicConverterConcreteTypeOptions concreteOptions in this.options.ConcreteTypeOptions)
+            foreach (PolymorphicJsonConverterConcreteTypeOptions concreteOptions in this.options.ConcreteTypeOptions)
             {
                 if (IsMatch(reader, concreteOptions))
                 {
 #if DEBUG
                     if (concreteType is not null)
                     {
-                        throw new InvalidOperationException($"More than one concrete type matched. This indicates a code defect in the configuration of the {nameof(JsonPolymorphicConverterAbstractTypeOptions)} used to initialize the {nameof(JsonPolymorphicConverter<T>)}");
+                        throw new InvalidOperationException($"More than one concrete type matched. This indicates a code defect in the configuration of the {nameof(PolymorphicJsonConverterAbstractTypeOptions)} used to initialize the {nameof(PolymorphicJsonConverter<T>)}");
                     }
 #endif
                     concreteType = concreteOptions.Type;

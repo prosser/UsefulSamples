@@ -1,4 +1,4 @@
-# JsonPolymorphicConverter
+# PolymorphicJsonConverter
 
 A JsonConverter to deserialize abstract/interface types using System.Text.Json using a type discriminator pattern.
 
@@ -6,7 +6,7 @@ A JsonConverter to deserialize abstract/interface types using System.Text.Json u
 
 1. Copy the .cs files from this repo to your codebase (except for [Program.cs](Program.cs))
 2. If you're not using C# 10.0 or later, either set `<LangVersion>10.0</LangVersion>` in your .csproj, or adjust the syntax in those .cs files to the older, rustier version of C# you're forcing yourself to use.
-3. Using [Program.cs](Program.cs) as a guide, add an instance of `JsonPolymorphicConverterFactory` to
+3. Using [Program.cs](Program.cs) as a guide, add an instance of `PolymorphicJsonConverterFactory` to
 your `JsonSerializerOptions.Converters`.
 4. ???
 5. Profit.
@@ -88,15 +88,15 @@ Given the classes above, the options are:
 In this case, the choice should be `Type`'s value, since it is available and simplest. If there could be collisions, approach 2 would be better.
 
 
-## JsonPolymorphicConverterFactory
+## PolymorphicJsonConverterFactory
 
-The `JsonPolymorphicConverterFactory` class is where you configure the discriminators that map each
+The `PolymorphicJsonConverterFactory` class is where you configure the discriminators that map each
 base type to the proper concrete (i.e., most-derived) types. It understands the property naming policy
 passed to it by `JsonSerializer`, so property names should be specified using the real names, ideally
 using the `nameof(MyPropertyName)` syntax:
 
 ```csharp
-JsonPolymorphicConverterFactory factory = new()
+PolymorphicJsonConverterFactory factory = new()
 {
     // the base type is Animal
     new(typeof(Animal))

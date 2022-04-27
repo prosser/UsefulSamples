@@ -7,42 +7,42 @@
     using System.Text.Json;
 
     /// <summary>Options to configure an abstract type for polymorphic JSON deserialization.</summary>
-    public class JsonPolymorphicConverterAbstractTypeOptions : ICollection<JsonPolymorphicConverterConcreteTypeOptions>
+    public class PolymorphicJsonConverterAbstractTypeOptions : ICollection<PolymorphicJsonConverterConcreteTypeOptions>
     {
-        /// <summary>Initializes a new instance of <see cref="JsonPolymorphicConverterAbstractTypeOptions"/>.</summary>
+        /// <summary>Initializes a new instance of <see cref="PolymorphicJsonConverterAbstractTypeOptions"/>.</summary>
         /// <param name="baseType">Base type that can be converted.</param>
         /// <remarks>
-        /// Must add at least one <see cref="JsonPolymorphicConverterConcreteTypeOptions"/> or deserialization will fail
+        /// Must add at least one <see cref="PolymorphicJsonConverterConcreteTypeOptions"/> or deserialization will fail
         /// at runtime.
         /// </remarks>
-        public JsonPolymorphicConverterAbstractTypeOptions(Type baseType)
+        public PolymorphicJsonConverterAbstractTypeOptions(Type baseType)
         {
             this.BaseType = baseType;
-            this.ConcreteTypeOptions = new List<JsonPolymorphicConverterConcreteTypeOptions>();
+            this.ConcreteTypeOptions = new List<PolymorphicJsonConverterConcreteTypeOptions>();
         }
 
-        /// <summary>Initializes a new instance of <see cref="JsonPolymorphicConverterAbstractTypeOptions"/>.</summary>
+        /// <summary>Initializes a new instance of <see cref="PolymorphicJsonConverterAbstractTypeOptions"/>.</summary>
         /// <param name="baseType">Base type that can be converted.</param>
         /// <param name="concreteTypeOptions">Options for each concrete type to be converted.</param>
         /// <exception cref="ArgumentException">No concrete type options were provided.</exception>
         /// <exception cref="ArgumentOutOfRangeException">
         /// One of the concrete type options' Type properties was not assignable to the base type.
         /// </exception>
-        public JsonPolymorphicConverterAbstractTypeOptions(Type baseType, params JsonPolymorphicConverterConcreteTypeOptions[] concreteTypeOptions)
-            : this(baseType, (IEnumerable<JsonPolymorphicConverterConcreteTypeOptions>)concreteTypeOptions)
+        public PolymorphicJsonConverterAbstractTypeOptions(Type baseType, params PolymorphicJsonConverterConcreteTypeOptions[] concreteTypeOptions)
+            : this(baseType, (IEnumerable<PolymorphicJsonConverterConcreteTypeOptions>)concreteTypeOptions)
         {
         }
 
-        /// <summary>Initializes a new instance of <see cref="JsonPolymorphicConverterAbstractTypeOptions"/>.</summary>
+        /// <summary>Initializes a new instance of <see cref="PolymorphicJsonConverterAbstractTypeOptions"/>.</summary>
         /// <param name="baseType">Base type that can be converted.</param>
         /// <param name="concreteTypeOptions">Options for each concrete type to be converted.</param>
         /// <exception cref="ArgumentException">No concrete type options were provided.</exception>
         /// <exception cref="ArgumentOutOfRangeException">
         /// One of the concrete type options' Type properties was not assignable to the base type.
         /// </exception>
-        public JsonPolymorphicConverterAbstractTypeOptions(Type baseType, IEnumerable<JsonPolymorphicConverterConcreteTypeOptions> concreteTypeOptions)
+        public PolymorphicJsonConverterAbstractTypeOptions(Type baseType, IEnumerable<PolymorphicJsonConverterConcreteTypeOptions> concreteTypeOptions)
         {
-            IList<JsonPolymorphicConverterConcreteTypeOptions> optionsArray = concreteTypeOptions as IList<JsonPolymorphicConverterConcreteTypeOptions>
+            IList<PolymorphicJsonConverterConcreteTypeOptions> optionsArray = concreteTypeOptions as IList<PolymorphicJsonConverterConcreteTypeOptions>
                 ?? concreteTypeOptions.ToList();
 
             if (optionsArray.Count == 0)
@@ -68,7 +68,7 @@
         public Type BaseType { get; }
 
         /// <summary>Options for concrete types that can be converted.</summary>
-        public IList<JsonPolymorphicConverterConcreteTypeOptions> ConcreteTypeOptions { get; }
+        public IList<PolymorphicJsonConverterConcreteTypeOptions> ConcreteTypeOptions { get; }
 
         /// <inheritdoc/>
         public int Count => this.ConcreteTypeOptions.Count;
@@ -77,7 +77,7 @@
         public bool IsReadOnly => this.ConcreteTypeOptions.IsReadOnly;
 
         /// <inheritdoc/>
-        public void Add(JsonPolymorphicConverterConcreteTypeOptions item)
+        public void Add(PolymorphicJsonConverterConcreteTypeOptions item)
         {
             this.ConcreteTypeOptions.Add(item);
         }
@@ -89,19 +89,19 @@
         }
 
         /// <inheritdoc/>
-        public bool Contains(JsonPolymorphicConverterConcreteTypeOptions item)
+        public bool Contains(PolymorphicJsonConverterConcreteTypeOptions item)
         {
             return this.ConcreteTypeOptions.Contains(item);
         }
 
         /// <inheritdoc/>
-        public void CopyTo(JsonPolymorphicConverterConcreteTypeOptions[] array, int arrayIndex)
+        public void CopyTo(PolymorphicJsonConverterConcreteTypeOptions[] array, int arrayIndex)
         {
             this.ConcreteTypeOptions.CopyTo(array, arrayIndex);
         }
 
         /// <inheritdoc/>
-        public IEnumerator<JsonPolymorphicConverterConcreteTypeOptions> GetEnumerator()
+        public IEnumerator<PolymorphicJsonConverterConcreteTypeOptions> GetEnumerator()
         {
             return this.ConcreteTypeOptions.GetEnumerator();
         }
@@ -114,14 +114,14 @@
 
         public void Initialize(JsonNamingPolicy? propertyNamingPolicy)
         {
-            foreach (JsonPolymorphicConverterConcreteTypeOptions cto in this.ConcreteTypeOptions)
+            foreach (PolymorphicJsonConverterConcreteTypeOptions cto in this.ConcreteTypeOptions)
             {
                 cto.Initialize(propertyNamingPolicy);
             }
         }
 
         /// <inheritdoc/>
-        public bool Remove(JsonPolymorphicConverterConcreteTypeOptions item)
+        public bool Remove(PolymorphicJsonConverterConcreteTypeOptions item)
         {
             return this.ConcreteTypeOptions.Remove(item);
         }
