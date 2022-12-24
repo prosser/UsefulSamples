@@ -1,4 +1,4 @@
-﻿namespace Contracts;
+﻿namespace Rosser.Contracts;
 
 /// <summary>A sample data item</summary>
 /// <param name="Symbol">Stock ticker symbol</param>

@@ -1,6 +1,6 @@
-﻿namespace StreamAsyncClient;
+﻿namespace Rosser.StreamAsyncClient;
 
-using Contracts;
+using Rosser.Contracts;
 
 using System.Diagnostics;
 using System.Text.Json;
@@ -49,9 +49,7 @@ internal class Program : IDisposable
         await foreach (StockPrice? item in GetItemsAsync<StockPrice>($"https://localhost:7065/?{string.Join("&", symbols.Select(s => $"symbols={s}"))}&maxDeltaPerDay={maxDeltaPerDay}&delay={delay}"))
         {
             if (item is not null)
-            {
                 Console.WriteLine($"{stopwatch.Elapsed} @ {item.Timestamp} {item.Symbol} {item.Value}");
-            }
         }
     }
 

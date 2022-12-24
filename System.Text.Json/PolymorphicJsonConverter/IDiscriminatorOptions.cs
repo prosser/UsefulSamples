@@ -1,4 +1,4 @@
-﻿namespace PRosser.Json;
+﻿namespace Rosser.Json;
 
 using System;
 using System.Text.Json;

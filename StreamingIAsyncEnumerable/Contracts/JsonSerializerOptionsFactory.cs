@@ -1,4 +1,4 @@
-﻿namespace Contracts;
+﻿namespace Rosser.Contracts;
 using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -37,7 +37,7 @@ public class JsonSerializerOptionsFactory
     public void Apply(JsonSerializerOptions options)
     {
         options.WriteIndented = this.Default.WriteIndented;
-        options.PropertyNamingPolicy= this.Default.PropertyNamingPolicy;
+        options.PropertyNamingPolicy = this.Default.PropertyNamingPolicy;
 
         foreach (JsonConverter converter in this.Default.Converters)
         {

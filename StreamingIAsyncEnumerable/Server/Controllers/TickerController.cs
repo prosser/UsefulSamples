@@ -1,8 +1,8 @@
-﻿namespace StreamingAsyncApi.Controllers;
-
-using Contracts;
+﻿namespace Rosser.StreamingAsyncApi.Controllers;
 
 using Microsoft.AspNetCore.Mvc;
+
+using Rosser.Contracts;
 
 using System.Runtime.CompilerServices;
 
@@ -20,7 +20,7 @@ public class TickerController : Controller
         // vary by no more than X% a day
         double scale = delay / TimeSpan.FromDays(1).TotalMilliseconds * maxDailyDelta;
 
-        Random rand = new Random();
+        var rand = new Random();
         Dictionary<string, decimal> prices = new();
         foreach (string symbol in symbols)
         {
@@ -36,7 +36,7 @@ public class TickerController : Controller
                 double seed = rand.NextDouble();
 
 
-                double change = seed > 0.5 ? 1 + (seed * scale) : 1 - (seed * scale);
+                double change = seed > 0.5 ? 1 + seed * scale : 1 - seed * scale;
                 prices[symbol] = Math.Round((decimal)change * value, 4);
                 StockPrice price = new(symbol, timestamp, value);
                 yield return price;

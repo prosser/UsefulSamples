@@ -1,4 +1,4 @@
-﻿namespace PRosser.Json.Discriminators;
+﻿namespace Rosser.Json.Discriminators;
 
 using System;
 using System.Collections.Generic;

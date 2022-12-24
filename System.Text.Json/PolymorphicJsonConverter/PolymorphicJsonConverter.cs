@@ -1,69 +1,68 @@
-﻿namespace PRosser.Json
+﻿namespace Rosser.Json;
+
+using System;
+using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+
+internal class PolymorphicJsonConverter<T> : JsonConverter<T>
+    where T : class
 {
-    using System;
-    using System.Linq;
-    using System.Text.Json;
-    using System.Text.Json.Serialization;
+    private readonly PolymorphicJsonConverterAbstractTypeOptions options;
 
-    internal class PolymorphicJsonConverter<T> : JsonConverter<T>
-        where T : class
+    public PolymorphicJsonConverter(PolymorphicJsonConverterAbstractTypeOptions options)
     {
-        private readonly PolymorphicJsonConverterAbstractTypeOptions options;
+        this.options = options;
+    }
 
-        public PolymorphicJsonConverter(PolymorphicJsonConverterAbstractTypeOptions options)
+    public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        return !this.TryGetConcreteType(reader, out Type? concreteType) ||
+            concreteType is null
+            ? throw new JsonException($"No matching type discriminator configured. Could not determine concrete type.")
+            : JsonSerializer.Deserialize(ref reader, concreteType, options) as T;
+    }
+
+    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+    {
+        if (value is null)
         {
-            this.options = options;
+            writer.WriteNullValue();
         }
-
-        public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        else
         {
-            return !this.TryGetConcreteType(reader, out Type? concreteType) ||
-                concreteType is null
-                ? throw new JsonException($"No matching type discriminator configured. Could not determine concrete type.")
-                : JsonSerializer.Deserialize(ref reader, concreteType, options) as T;
+            JsonSerializer.Serialize(writer, value, value.GetType(), options);
         }
+    }
 
-        public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+    private static bool IsMatch(Utf8JsonReader reader, PolymorphicJsonConverterConcreteTypeOptions options)
+    {
+        return JsonElement.TryParseValue(ref reader, out JsonElement? element) &&
+            element is not null &&
+            options.Predicate(element.Value);
+    }
+
+    private bool TryGetConcreteType(Utf8JsonReader reader, out Type? concreteType)
+    {
+        concreteType = null;
+        foreach (PolymorphicJsonConverterConcreteTypeOptions concreteOptions in this.options.ConcreteTypeOptions)
         {
-            if (value is null)
+            if (IsMatch(reader, concreteOptions))
             {
-                writer.WriteNullValue();
-            }
-            else
-            {
-                JsonSerializer.Serialize(writer, value, value.GetType(), options);
-            }
-        }
-
-        private static bool IsMatch(Utf8JsonReader reader, PolymorphicJsonConverterConcreteTypeOptions options)
-        {
-            return JsonElement.TryParseValue(ref reader, out JsonElement? element) &&
-                element is not null &&
-                options.Predicate(element.Value);
-        }
-
-        private bool TryGetConcreteType(Utf8JsonReader reader, out Type? concreteType)
-        {
-            concreteType = null;
-            foreach (PolymorphicJsonConverterConcreteTypeOptions concreteOptions in this.options.ConcreteTypeOptions)
-            {
-                if (IsMatch(reader, concreteOptions))
-                {
 #if DEBUG
-                    if (concreteType is not null)
-                    {
-                        throw new InvalidOperationException($"More than one concrete type matched. This indicates a code defect in the configuration of the {nameof(PolymorphicJsonConverterAbstractTypeOptions)} used to initialize the {nameof(PolymorphicJsonConverter<T>)}");
-                    }
+                if (concreteType is not null)
+                {
+                    throw new InvalidOperationException($"More than one concrete type matched. This indicates a code defect in the configuration of the {nameof(PolymorphicJsonConverterAbstractTypeOptions)} used to initialize the {nameof(PolymorphicJsonConverter<T>)}");
+                }
 #endif
-                    concreteType = concreteOptions.Type;
+                concreteType = concreteOptions.Type;
 
 #if RELEASE
-                   break;
+               break;
 #endif
-                }
             }
-
-            return concreteType is not null;
         }
+
+        return concreteType is not null;
     }
 }

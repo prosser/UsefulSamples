@@ -7,7 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>PolymorphicJsonConverterSample</AssemblyName>
-    <RootNamespace>PRosser.Json</RootNamespace>
+    <RootNamespace>Rosser.Json</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
