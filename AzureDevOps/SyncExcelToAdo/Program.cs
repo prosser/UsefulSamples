@@ -5,15 +5,15 @@ using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using MiniExcelLibs;
 
 using System.Data;
+using System.Diagnostics;
 
 using static ConsoleHelper;
 
 internal class Program
 {
     private readonly AppSettings settings;
-    private AdoClients? ado;
 
-    private static async Task<int> Main()
+    private static async Task<int> Main(bool dryRun)
     {
         try
         {
@@ -27,6 +27,24 @@ internal class Program
                 .Build();
 
             config.Bind(settings);
+            if (dryRun)
+            {
+                settings.DryRun = dryRun;
+            }
+            else if (Debugger.IsAttached)
+            {
+                Print("Press D for dry run, any other key to continue: ");
+                ConsoleKeyInfo key = Console.ReadKey();
+                if (key.Key == ConsoleKey.D)
+                {
+                    settings.DryRun = true;
+                    PrintLine("Dry run enabled", ConsoleColor.Yellow);
+                }
+                else
+                {
+                    PrintLine("Dry run disabled", ConsoleColor.Yellow);
+                }
+            }
 
             if (!File.Exists(settings.Excel.Path))
                 throw new FileNotFoundException($"Excel file not found at {settings.Excel.Path}", settings.Excel.Path);
@@ -47,18 +65,18 @@ internal class Program
         this.settings = settings;
     }
 
-    private AdoClients Ado => this.ado ?? throw new InvalidOperationException("Local client not initialized.");
 
     public async Task Run()
     {
+        AdoClients? ado = null;
         try
         {
-            this.ado = await VssConnectionHelper.Connect(this.settings.Ado);
+            ado = await VssConnectionHelper.Connect(this.settings.Ado);
             using FileStream stream = File.OpenRead(this.settings.Excel.Path);
 
             string[] columns = stream.GetColumns(true, this.settings.Excel.SheetName).ToArray();
 
-            WorkItemHelper syncHelper = new(this.ado, this.settings);
+            WorkItemHelper syncHelper = new(ado, this.settings);
 
             int[] workItemIds = stream.Query(true, this.settings.Excel.SheetName)
                 .Select(dyn => (IDictionary<string, object>)dyn)
@@ -67,10 +85,27 @@ internal class Program
                 .Select(x => int.Parse(x!))
                 .ToArray();
 
+            // find duplicate ids
+            int[] duplicateIds = workItemIds
+                 .GroupBy(x => x)
+                 .Where(g => g.Count() > 1)
+                 .Select(g => g.Key)
+                 .ToArray();
+
+            if (duplicateIds.Length > 0)
+            {
+                throw new InvalidOperationException($"Duplicate work item ids found in the Excel file: {string.Join(", ", duplicateIds)}");
+            }
+
             IDictionary<int, WorkItem> workItems = await syncHelper.GetWorkItems(workItemIds);
 
-            foreach (IDictionary<string, object> row in stream.Query(true, this.settings.Excel.SheetName))
+            foreach (dynamic dyn in stream.Query(true, this.settings.Excel.SheetName))
             {
+                if (dyn is not IDictionary<string, object> row)
+                {
+                    continue;
+                }
+
                 string? strId = row[this.settings.Excel.AdoIdColumn]?.ToString();
                 if (strId is null)
                     continue;
@@ -92,7 +127,7 @@ internal class Program
         }
         finally
         {
-            this.ado?.Dispose();
+            ado?.Dispose();
         }
     }
 

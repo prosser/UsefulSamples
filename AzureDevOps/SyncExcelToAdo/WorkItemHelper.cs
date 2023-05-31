@@ -24,7 +24,7 @@ internal class WorkItemHelper
     public async Task<IDictionary<int, WorkItem>> GetWorkItems(IEnumerable<int> ids)
     {
         string[] fields = this.settings.Excel.Mappings.WriteToAdo.Select(x => x.AdoField)
-            .Concat(this.settings.Excel.Mappings.ReadFromAdo.Keys)
+            .Concat(this.settings.Excel.Mappings.ReadFromAdo.Select(x => x.AdoField))
             .Distinct()
             .ToArray();
 
@@ -63,13 +63,13 @@ internal class WorkItemHelper
     }
 
     public async Task<WorkItem> SyncProperties(
-        IEnumerable<WriteToAdoSettings> sync,
+        IEnumerable<ColumnMapping> sync,
         IDictionary<string, object> sourceData,
         WorkItem targetItem)
     {
         JsonPatchDocument patch = new();
 
-        foreach (WriteToAdoSettings syncItem in sync)
+        foreach (ColumnMapping syncItem in sync)
         {
             if (!sourceData.TryGetValue(syncItem.ExcelColumn, out object? valueInSource))
             {
@@ -89,7 +89,7 @@ internal class WorkItemHelper
                 });
 
                 Print($"Will update {GetWorkItemUxHref(this.settings.Ado, targetItem.Id!.Value).OriginalString} ");
-                Print(syncItem.AdoField.ShortFieldName(), ConsoleColor.Cyan);
+                Print(syncItem.AdoField, ConsoleColor.Cyan);
                 Print(" from ");
                 Print(oldValueInTarget, ConsoleColor.Yellow);
                 Print(" to ");
@@ -99,17 +99,20 @@ internal class WorkItemHelper
             {
                 // uncomment for verbose output
                 Print($"Skipping {this.settings.Ado.Org}/{targetItem.Id} ", ConsoleColor.DarkGray);
-                Print(syncItem.AdoField.ShortFieldName(), ConsoleColor.DarkCyan);
+                Print(syncItem.AdoField, ConsoleColor.DarkCyan);
                 Print(" because it is already ", ConsoleColor.DarkGray);
                 PrintLine(oldValueInTarget, ConsoleColor.DarkGray);
             }
         }
 
-        targetItem = patch.Count > 0
-            ? await this.ado.WorkItems.UpdateWorkItemAsync(patch, this.settings.Ado.Project, targetItem.Id!.Value, expand: WorkItemExpand.All)
-            : targetItem;
+        if (!this.settings.DryRun)
+        {
+            targetItem = patch.Count > 0
+                ? await this.ado.WorkItems.UpdateWorkItemAsync(patch, this.settings.Ado.Project, targetItem.Id!.Value, expand: WorkItemExpand.All)
+                : targetItem;
+        }
 
-        WriteToAdoSettings[] recursiveSync = sync.Where(x => x.Recursive).ToArray();
+        ColumnMapping[] recursiveSync = sync.Where(x => x.Recursive).ToArray();
         if (recursiveSync.Length > 0)
         {
             _ = await this.PopulateRelations(targetItem);
