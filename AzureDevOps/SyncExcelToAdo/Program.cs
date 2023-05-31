@@ -99,16 +99,20 @@ internal class Program
 
             IDictionary<int, WorkItem> workItems = await syncHelper.GetWorkItems(workItemIds);
 
-            foreach (dynamic dyn in stream.Query(true, this.settings.Excel.SheetName))
+            dynamic[] rows = stream.Query(true, this.settings.Excel.SheetName).ToArray();
+
+            Task[] syncTasks = rows.Select(dyn =>
             {
                 if (dyn is not IDictionary<string, object> row)
                 {
-                    continue;
+                    return Task.CompletedTask;
                 }
 
                 string? strId = row[this.settings.Excel.AdoIdColumn]?.ToString();
                 if (strId is null)
-                    continue;
+                {
+                    return Task.CompletedTask;
+                }
 
                 int adoId = int.Parse(strId);
 
@@ -120,10 +124,10 @@ internal class Program
                 PrintLine($"{adoId}: {string.Join(", ", excelValues.Select(kv => $"{kv.Key} = {kv.Value}"))}", ConsoleColor.DarkGray);
 
                 WorkItem workItem = workItems[adoId];
-                _ = await syncHelper.SyncProperties(this.settings.Excel.Mappings.WriteToAdo, excelValues, workItem);
+                return syncHelper.SyncProperties(this.settings.Excel.Mappings.WriteToAdo, excelValues, workItem);
+            }).ToArray();
 
-
-            }
+            await Task.WhenAll(syncTasks);
         }
         finally
         {
