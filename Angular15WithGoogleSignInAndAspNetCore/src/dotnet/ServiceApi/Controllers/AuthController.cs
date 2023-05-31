@@ -2,11 +2,11 @@
 
 using Google.Apis.Auth;
 
-using ServiceApi.Models;
-using ServiceApi.Services;
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+
+using ServiceApi.Models;
+using ServiceApi.Services;
 
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -38,7 +38,7 @@ public class AuthController : ControllerBase
 
         AppUser? user = await this.userService.GetUserByUserNameAsync(model.UserName, ct);
 
-        if (user is null || !this.CheckPassword(model.Password, user))
+        if (user is null || !CheckPassword(model.Password, user))
         {
             return this.Unauthorized(model);
         }
@@ -120,7 +120,7 @@ public class AuthController : ControllerBase
         return this.Ok(user);
     }
 
-    private bool CheckPassword(string password, AppUser user)
+    private static bool CheckPassword(string password, AppUser user)
     {
         using HMACSHA512 hmac = new(user.PasswordSalt);
         byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(password));

@@ -12,11 +12,11 @@ internal class Program : IDisposable
 
     private Program()
     {
-        client = new()
+        this.client = new()
         {
             MaxResponseContentBufferSize = 20
         };
-        serializerOptions = new()
+        this.serializerOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         };
@@ -24,15 +24,15 @@ internal class Program : IDisposable
 
     public void Dispose()
     {
-        ((IDisposable)client).Dispose();
+        ((IDisposable)this.client).Dispose();
     }
 
     public async IAsyncEnumerable<T?> GetItemsAsync<T>(string url)
     {
-        using HttpResponseMessage response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+        using HttpResponseMessage response = await this.client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
         await using Stream stream = await response.Content.ReadAsStreamAsync();
 
-        await foreach (T? item in JsonSerializer.DeserializeAsyncEnumerable<T>(stream, serializerOptions))
+        await foreach (T? item in JsonSerializer.DeserializeAsyncEnumerable<T>(stream, this.serializerOptions))
         {
             yield return item;
         }
@@ -46,7 +46,7 @@ internal class Program : IDisposable
         int delay = 1000;
         double maxDeltaPerDay = 0.5;
 
-        await foreach (StockPrice? item in GetItemsAsync<StockPrice>($"https://localhost:7065/?{string.Join("&", symbols.Select(s => $"symbols={s}"))}&maxDeltaPerDay={maxDeltaPerDay}&delay={delay}"))
+        await foreach (StockPrice? item in this.GetItemsAsync<StockPrice>($"https://localhost:7065/?{string.Join("&", symbols.Select(s => $"symbols={s}"))}&maxDeltaPerDay={maxDeltaPerDay}&delay={delay}"))
         {
             if (item is not null)
                 Console.WriteLine($"{stopwatch.Elapsed} @ {item.Timestamp} {item.Symbol} {item.Value}");

@@ -42,7 +42,7 @@ public class TickerController : Controller
                 yield return price;
             }
 
-            await Task.Delay(delay);
+            await Task.Delay(delay, ct);
         }
     }
 }
