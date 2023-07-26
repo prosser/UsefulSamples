@@ -10,6 +10,7 @@ internal static class WorkItemExtensions
 
     public static object? Field(this WorkItem workItem, string fieldName)
     {
+        // Try to get the field by the full name first, then by the short name
         return workItem.Fields.TryGetValue(fieldName, out object? field)
             ? field
             : workItem.Fields.FirstOrDefault(x => x.Key.ShortFieldName() == fieldName.ShortFieldName()).Value;

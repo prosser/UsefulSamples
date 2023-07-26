@@ -1,7 +1,6 @@
 ﻿namespace SyncExcelToAdo;
 
 using System;
-using System.Collections.Generic;
 
 /// <summary>
 /// ADO configuration settings
@@ -23,14 +22,14 @@ public record AdoSettings(string Org, string Project, string PersonalAccessToken
 public class AppSettings
 {
     /// <summary>
-    /// If <c>true</c>, no changes will be made to ADO.
-    /// </summary>
-    public bool DryRun {get;set;}
-
-    /// <summary>
     /// ADO configuration settings
     /// </summary>
     public AdoSettings Ado { get; set; } = default!;
+
+    /// <summary>
+    /// If <c>true</c>, no changes will be made to ADO.
+    /// </summary>
+    public bool DryRun { get; set; }
 
     /// <summary>
     /// Excel configuration settings
@@ -75,9 +74,30 @@ public class ExcelSettings
     public string Path { get; set; } = default!;
 
     /// <summary>
+    /// The Excel row filters
+    /// </summary>
+    public RowFilterSettings[] RowFilters { get; set; } = Array.Empty<RowFilterSettings>();
+
+    /// <summary>
     /// The Excel sheet name
     /// </summary>
     public string SheetName { get; set; } = default!;
+}
+
+/// <summary>
+/// Excel row filter settings
+/// </summary>
+public class RowFilterSettings
+{
+    /// <summary>
+    /// The column name to filter on
+    /// </summary>
+    public string Column { get; set; } = default!;
+
+    /// <summary>
+    /// The value to filter on. If matched, the row will be included.
+    /// </summary>
+    public object? Value { get; set; }
 }
 
 /// <summary>

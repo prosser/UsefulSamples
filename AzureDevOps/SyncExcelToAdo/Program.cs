@@ -74,12 +74,38 @@ internal class Program
             ado = await VssConnectionHelper.Connect(this.settings.Ado);
             using FileStream stream = File.OpenRead(this.settings.Excel.Path);
 
-            string[] columns = stream.GetColumns(true, this.settings.Excel.SheetName).ToArray();
+            string[] columns;
+            try
+            {
+                columns = stream.GetColumns(true, this.settings.Excel.SheetName).ToArray();
+            }
+            catch (InvalidOperationException ex)
+            {
+                if (ex.Message.Contains("sheetName"))
+                {
+                    stream.Position = 0;
+                    PrintLine($"Sheet name '{this.settings.Excel.SheetName}' not found in {this.settings.Excel.Path}", ConsoleColor.Red);
+                    PrintLine("Sheet names:", ConsoleColor.DarkGray);
+                    stream.GetSheetNames().ForEach(x => PrintLine(x, ConsoleColor.DarkGray));
+                    
+                }
+
+                throw;
+            }
+
 
             WorkItemHelper syncHelper = new(ado, this.settings);
 
-            int[] workItemIds = stream.Query(true, this.settings.Excel.SheetName)
+            Dictionary<string, object>[] allRows = stream.Query(true, this.settings.Excel.SheetName)
                 .Select(dyn => (IDictionary<string, object>)dyn)
+                .Select(x => x.ToDictionary(kv => kv.Key, kv => kv.Value))
+                .ToArray();
+            Dictionary<string, object>[] rows = allRows
+                //.Where(row => row.TryGetValue("Work Item Type", out object? value) && value is string s && s == "Deliverable")
+                .Where(row => this.settings.Excel.RowFilters.All(filter => row.TryGetValue(filter.Column, out object? x) && Equals(x, filter.Value)))
+                .ToArray();
+
+            int[] workItemIds = rows
                 .Select(row => row[this.settings.Excel.AdoIdColumn]?.ToString())
                 .Where(x => !string.IsNullOrWhiteSpace(x))
                 .Select(x => int.Parse(x!))
@@ -99,15 +125,8 @@ internal class Program
 
             IDictionary<int, WorkItem> workItems = await syncHelper.GetWorkItems(workItemIds);
 
-            dynamic[] rows = stream.Query(true, this.settings.Excel.SheetName).ToArray();
-
-            Task[] syncTasks = rows.Select(dyn =>
+            Task[] syncTasks = rows.Select(row =>
             {
-                if (dyn is not IDictionary<string, object> row)
-                {
-                    return Task.CompletedTask;
-                }
-
                 string? strId = row[this.settings.Excel.AdoIdColumn]?.ToString();
                 if (strId is null)
                 {

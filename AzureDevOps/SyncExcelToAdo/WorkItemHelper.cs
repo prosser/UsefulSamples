@@ -1,10 +1,12 @@
 ﻿namespace SyncExcelToAdo;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+using Microsoft.VisualStudio.Services.WebApi;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 
@@ -23,33 +25,50 @@ internal class WorkItemHelper
 
     public async Task<IDictionary<int, WorkItem>> GetWorkItems(IEnumerable<int> ids)
     {
-        string[] fields = this.settings.Excel.Mappings.WriteToAdo.Select(x => x.AdoField)
-            .Concat(this.settings.Excel.Mappings.ReadFromAdo.Select(x => x.AdoField))
-            .Distinct()
-            .ToArray();
-
-        var result = (await this.ado.WorkItems.GetWorkItemsAsync(ids, fields))
-            .ToList();
-        List<WorkItem>? resultsWithRelations = await this.ado.WorkItems.GetWorkItemsAsync(ids, expand: WorkItemExpand.Relations);
-
-        Dictionary<int, WorkItem> dict = new();
-        if (result is not null)
+        try
         {
-            _ = new List<Task<WorkItem>>();
-            foreach (WorkItem? item in result)
-            {
-                if (item.Id.HasValue)
-                {
-                    WorkItem? withRelations = resultsWithRelations?.FirstOrDefault(x => x.Id == item.Id);
-                    if (withRelations is not null)
-                        item.Relations = withRelations.Relations;
+            string[] fields = this.settings.Excel.Mappings.WriteToAdo.Select(x => x.AdoField)
+                .Concat(this.settings.Excel.Mappings.ReadFromAdo.Select(x => x.AdoField))
+                .Distinct()
+                .ToArray();
 
-                    dict.Add(item.Id.Value, item);
+            var result = (await this.ado.WorkItems.GetWorkItemsAsync(ids, fields))
+                .ToList();
+            List<WorkItem>? resultsWithRelations = await this.ado.WorkItems.GetWorkItemsAsync(ids, expand: WorkItemExpand.Relations);
+
+            Dictionary<int, WorkItem> dict = new();
+            if (result is not null)
+            {
+                _ = new List<Task<WorkItem>>();
+                foreach (WorkItem? item in result)
+                {
+                    if (item.Id.HasValue)
+                    {
+                        WorkItem? withRelations = resultsWithRelations?.FirstOrDefault(x => x.Id == item.Id);
+                        if (withRelations is not null)
+                            item.Relations = withRelations.Relations;
+
+                        dict.Add(item.Id.Value, item);
+                    }
                 }
             }
-        }
 
-        return dict;
+            return dict;
+        }
+        catch (VssServiceResponseException ex)
+        {
+            if (ex.Message == "Not Found")
+            {
+                PrintLine("Work item not found", ConsoleColor.Red);
+                PrintLine("Tried to get these ids:", ConsoleColor.DarkGray);
+                foreach (int id in ids)
+                {
+                    PrintLine(id, ConsoleColor.DarkGray);
+                }
+            }
+
+            throw;
+        }
     }
 
     private async Task<WorkItem> PopulateRelations(WorkItem item)
