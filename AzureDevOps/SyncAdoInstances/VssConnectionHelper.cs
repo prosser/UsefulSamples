@@ -20,7 +20,7 @@ internal class VssConnectionHelper
                 VssCredentials creds = GetVssCredentials(ado.Org);
                 VssConnection connection = new(ado.OrgUri, creds);
                 await connection.ConnectAsync();
-                AdoClients clients = new(ado.Project, connection);
+                AdoClients clients = new(ado, connection);
                 await clients.Initialize(new(new[] { "Scenario", "Deliverable", "Feature", "Task Group", "Task" }));
                 return clients;
             }
