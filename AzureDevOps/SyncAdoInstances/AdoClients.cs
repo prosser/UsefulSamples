@@ -11,15 +11,15 @@ internal class AdoClients : IDisposable
     private readonly VssConnection connection;
     private readonly Dictionary<string, ImmutableArray<string>> fieldsByWorkItemType = new();
 
-    public AdoClients(string projectName, VssConnection connection)
+    public AdoClients(AdoSettings settings, VssConnection connection)
     {
-        this.ProjectName = projectName;
+        this.Settings = settings;
         this.connection = connection;
         this.WorkItems = connection.GetClient<WorkItemTrackingHttpClient>();
         this.Projects = connection.GetClient<ProjectHttpClient>();
     }
 
-    public string ProjectName { get; }
+    public string ProjectName => this.Settings.Project;
     public WorkItemTrackingHttpClient WorkItems { get; }
     public ProjectHttpClient Projects { get; }
 
@@ -69,6 +69,7 @@ internal class AdoClients : IDisposable
     }
 
     public ImmutableArray<string> CommonFields { get; private set; } = ImmutableArray<string>.Empty;
+    public AdoSettings Settings { get; }
 
     public string GetFullFieldName(string fieldName, string workItemType)
     {
